@@ -97,6 +97,17 @@ def main():
 
     elif args.command == "list":
         tasks = task_manager.list_tasks(args.status, args.priority, args.overdue)
+
+        # --- New Business Rule: Overdue first, then by due date ---
+        from datetime import datetime
+        tasks.sort(
+            key=lambda t: (
+                0 if t.is_overdue() else 1,        # overdue tasks first
+                t.due_date or datetime.max         # then by due date
+            )
+        )
+        # ------------------------------------------------------------
+
         if tasks:
             for task in tasks:
                 print(format_task(task))

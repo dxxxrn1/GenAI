@@ -1,0 +1,52 @@
+1. Initial vs Final understanding
+when opening the project the stucture was odd cause it had modesl which had classes for managing the tasks and then a odd cli file. my basic understanding was the models hold all classes and methods and they are executed in the task_manager.py file and saw the .jason in storage where the tasks are stored
+after going through all the files i then understood how cli  is used to manage the way the task manager is used in terms of taking the user comands into the task manger and that the models.py holds the methods used such as mark_as_done and is_overdue and how storge is used to manage the jason file of contents stored by the user these. the taskmanager.py validates user inputes and counts overdue dates and tasks completed. 
+I understood that:
+cli.py is the entry point for managing user input and passing commands to TaskManager.
+models.py contains the classes and methods such as mark_as_done and is_overdue.
+storage.py handles reading and writing to the JSON file where tasks are stored.
+task_manager.py validates user input, manages tasks, and provides counts for overdue tasks and recently completed tasks.
+
+
+2.Most valuable insights gained from each prompt
+Prompt 1: Understanding Project Structure and Technology Stack
+helped gain understanding on the project file organization from start to end as i didnt think it mattered but it starts witht eh cli.py entry point that calls the methods. the task_manager.py has the logic to create, delete tasks and manage them. it includes basic libaries from python such as datetime,jason and os for file paths and storage. 
+Prompt 2: Deepen Understanding of a Codebase
+helped me understand the taskstorage, task and taskamanger code and how they interect with each other to load tasks from jason file for the user to crate,update and delete tasks and the flow from the cli.py to task_manager.py to storage.py
+
+Business Rule: Show Overdue Tasks Sorted by Due Date
+When listing tasks, if the user selects the “overdue” option, the system should:
+Only show tasks that are past their due date.
+Sort these overdue tasks by due date (earliest first) for easier prioritization
+Steps to Implement the Business Rule (CLI Approach)
+Locate the Listing Code in cli.py
+Found the block handling the list command in main():
+elif args.command == "list":
+    tasks = task_manager.list_tasks(args.status, args.priority, args.overdue)
+    if tasks:
+        for task in tasks:
+            print(format_task(task))
+            print("-" * 50)
+    else:
+        print("No tasks found matching the criteria.")
+
+Add Sorting Logic
+
+Checked if args.overdue is True and then sorted the tasks by due_date before printing:
+
+elif args.command == "list":
+    tasks = task_manager.list_tasks(args.status, args.priority, args.overdue)
+    if tasks:
+        if args.overdue:
+            tasks = sorted(tasks, key=lambda t: t.due_date)
+        for task in tasks:
+            print(format_task(task))
+            print("-" * 50)
+    else:
+        print("No tasks found matching the criteria.")
+
+  Strategies you’ve developed for approaching unfamiliar code in the future
+  the strategies i developed was to start by id the structure as it does matter and locate where the program begins and ends and understand the project structure. 
+try to focus on one module/feature to understand the context of the rest rather than reading and understanding everything of them at once
+use the ai model as the senior developer who can explain parts of code i dont understand and correct me when i miss important parts  
+make use of small changes to understand the code behavour and check my understanding to see the changes myself rather than relying too much on the AI and use the changes as a way to validate its suggestions too.
