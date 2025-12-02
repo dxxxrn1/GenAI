@@ -1,0 +1,208 @@
+                                    EXERCISE PART 1
+
+Explanation of How Task Creation Works
+    1. Core Components Involved
+    Classes / Types referenced:
+    TaskPriority — wraps a numeric priority into an enum-like structure
+    Task — data model representing a task entity
+    self.storage — persistence layer / repository that stores tasks
+
+    Methods involved:
+    create_task(...): the main factory / entry point for creating tasks
+    self.storage.add_task(task): handles persistence, returns task ID
+
+
+
+2. Execution Flow When Creating a Task
+    Here’s what happens step-by-step:
+
+    Step 1. Validate and convert priority
+            priority = TaskPriority(priority_value)
+
+
+    Converts user input (likely an int) into a formal Priority object
+    Encapsulates business rules around priorities
+    Prevents callers from passing arbitrary values
+
+    Step 2. Validate and parse due date
+    due_date = None
+            if due_date_str:
+                try:
+                    due_date = datetime.strptime(due_date_str, "%Y-%m-%d")
+                except ValueError:
+                    print("Invalid date format. Use YYYY-MM-DD")
+                    return None
+
+
+    Optional due_date_str is converted into a datetime
+    If invalid, prints error & aborts the operation
+    This is simple validation done at the service level
+
+    Step 3. Construct a Task entity
+            task = Task(title, description, priority, due_date, tags)
+
+    The Task object is created in memory
+    At this point, no persistence has occurred yet
+    The entity now holds all domain data
+
+    Step 4. Persist the task
+            task_id = self.storage.add_task(task)
+            return task_id
+
+    Task is passed to the storage layer
+    The storage layer assigns an ID and persists the task
+    Returned ID is given back to the caller (likely the UI/CLI)
+
+
+Data Storage & Retrieval
+
+    From this snippet, we can infer:
+    Storage abstraction
+    self.storage is likely a repository class
+    It has a method add_task that returns an ID
+
+    Pattern resembles:
+    Repository Pattern
+    Data Mapper
+
+    Persistence:
+    Tasks are stored outside this class
+
+    Separation of concerns:
+    This class handles business logic + validation
+
+Storage class handles durability / IO
+
+Design Pattern
+Makes use of a factory moethod pattern where the input is validated and creates the object and implements it 
+
+
+            Final Understanding of the Task Prioritization System (Exercise 2)
+
+    1. How Priority Is Represented and Stored
+    Tasks store a priority attribute, which is an instance of the TaskPriority enum.
+    Priorities are defined as named constants with numeric values:
+
+    class TaskPriority(Enum):
+        LOW = 1
+        MEDIUM = 2
+        HIGH = 3
+        URGENT = 4
+
+    This provides structure, readability, and supports validation because only defined enum values are allowed.
+    When persisted to JSON, the enum value is stored numerically.
+    When tasks are loaded from disk, the numeric value is converted back into the enum:
+
+    task.priority = TaskPriority(obj['priority'])
+
+
+    So the system both serializes and deserializes priority automatically
+
+    Priority Value Mapping and Validation
+
+    2.Priority Value Mapping and Validation
+    Priority values are mapped to integers, but users aren’t expected to provide arbitrary numbers.
+    The enum ensures that invalid values cause errors instead of silently being accepted.
+    There is no explicit user-facing error handling for invalid priority values, unlike date formats where there is a try/except.
+    Priority validation depends on the enum type conversion to fail if invalid.
+
+    3.Business Logic: How Priority Is Used
+    Priority is used during task creation, filtering, and display.
+    When listing tasks, a priority_filter can be applied:
+
+    if priority_filter:
+        priority = TaskPriority(priority_filter)
+        return self.storage.get_tasks_by_priority(priority)
+
+    Storage layer retrieves tasks using:
+
+    def get_tasks_by_priority(self, priority):
+        return [task for task in self.tasks.values() if task.priority == priority]
+
+    This means prioritization is opt-in: filtering only happens when requested.
+
+
+    4. Sorting and Combined Filters
+    Tasks are not automatically sorted by priority unless the CLI or other logic explicitly sorts them.
+    The system supports filtering by priority OR by overdue.
+    You observed that combining filters (overdue + priority) is possible.
+    Default behavior is simple filtering, not sorting.
+    So prioritization functionality is available but manual, rather than being part of a larger decision engine.
+
+    5. Data Persistence and Reconstruction
+    Priority is stored in the JSON representation of a task as a numeric value.
+    When reading from disk:
+    JSON number ➜ Enum in memory
+    When writing to disk:
+    Enum ➜ JSON number
+    This ensures consistency across saves and loads.
+
+    6. Edge Cases and Limitations
+
+There is no explicit handling for invalid priority input by users.
+If a user enters something not in the Enum, a runtime error will occur.
+In contrast, date inputs do have explicit validation.
+So input validation is inconsistent across features.
+
+Key Insights Gained (Exercise 2)
+✔️ Enum-based representation enables:
+Strong typing
+Easy value mapping
+Controlled valid domain
+
+✔️ Prioritization is implemented mainly at:
+Task creation
+Task filtering
+Task persistence
+
+✔️ Responsibilities are well-separated:
+Models: represent priorities
+TaskManager: validates/filters
+Storage: serializes/deserializes
+
+✔️ The system supports flexible filtering
+but does not automatically enforce global ordering.
+
+🔍 Misconceptions Corrected
+Initially, you assumed:
+priorities were just numbers incremented and stored in JSON.
+
+After reviewing the code, you discovered:
+They are partgit of a TaskPriority enum
+Mapped bidirectionally
+Used structurally, not just raw integers
+This shows a deeper design intention.
+
+
+                        Exercise Part 3: Mapping Data Flow
+User Input (CLI)
+      │
+      ▼
+TaskManager (validates input, applies business rules)
+      │
+      ▼
+Task Model (object state changes: status, priority, etc.)
+      │
+      ▼
+Storage (serializes/deserializes task objects)
+      │
+      ▼
+JSON File (persistent data store)
+
+Summary
+State Changes
+    Task status changed to DONE
+    Completion timestamp set
+    Updated timestamp refreshed
+    Persisted to disk
+
+Potential Failures
+    Invalid task IDs
+    Invalid status values
+    JSON file write failures
+
+Persistence Workflow
+    Update in-memory Task object
+    Serialize to JSON
+    Overwrite JSON file
+    Rehydrate objects on load
