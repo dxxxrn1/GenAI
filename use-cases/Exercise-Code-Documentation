@@ -1,0 +1,116 @@
+def update_task_status(self, task_id, new_status_value):
+    """
+    Update the status of an existing task.
+
+    This function updates the status of a task identified by its unique ID.
+    If the provided status resolves to ``TaskStatus.DONE``, the task is marked
+    as completed, the storage layer is persisted immediately, and ``True`` is
+    returned. For all other status values, the update is delegated to the
+    storage subsystem.
+
+    Parameters
+    ----------
+    task_id : str or int
+        Unique identifier of the task to update. The type depends on the storage
+        implementation, but should uniquely reference a single task instance.
+    new_status_value : str or int or TaskStatus
+        Value representing the desired new task status. This is converted to a
+        ``TaskStatus`` enum instance. Passing an invalid value may raise an error.
+
+    Returns
+    -------
+    bool
+        - ``True`` if the task was successfully marked as done.
+        - The return value of ``self.storage.update_task`` if updating to a
+          non-DONE status.
+        - ``None`` if the task is DONE but does not exist in storage.
+
+    Raises
+    ------
+    ValueError
+        If ``new_status_value`` cannot be converted to a valid ``TaskStatus`` enum.
+    Exception
+        Propagated from ``self.storage.get_task`` or ``self.storage.update_task``
+        if underlying storage operations fail.
+
+    Examples
+    --------
+    Mark a task as complete:
+
+    >>> manager.update_task_status(task_id=42, new_status_value="DONE")
+    True
+
+    Update a task to an "in progress" status:
+
+    >>> manager.update_task_status(task_id=42, new_status_value="IN_PROGRESS")
+    True  # (assuming storage returns True)
+
+    Notes
+    -----
+    - When setting a task to ``TaskStatus.DONE``:
+      - The task is retrieved and explicitly updated using ``task.mark_as_done()``.
+      - Storage changes are persisted immediately via ``self.storage.save()``.
+      - If the task does not exist, the method returns ``True`` only when a task is
+        found and updated; otherwise, it returns ``None``.
+
+    - For non-DONE statuses:
+      - No explicit save is called; persistence behavior depends on how
+        ``self.storage.update_task`` is implemented.
+
+    - This function performs minimal validation of task existence or status
+      semantics; callers should ensure inputs are valid.
+
+    """
+    new_status = TaskStatus(new_status_value)
+    if new_status == TaskStatus.DONE:
+        task = self.storage.get_task(task_id)
+        if task:
+            task.mark_as_done()
+            self.storage.save()
+            return True
+    else:
+        return self.storage.update_task(task_id, status=new_status)
+
+"""
+Potential improvements (preserve original functionality if requested)
+I’ll list improvements you can apply — each with a note about whether it changes behaviour (optional) or simply clarifies/fortifies.
+
+1.Make returns explicit and consistent (recommended)
+    Problem: mixed True/None/custom returns.
+
+    Fix: explicitly return False when task not found in DONE branch. This changes current behaviour (from None to False) but makes the API clearer. If you must not change behavior, at least document the None case.
+
+    Example: if not task: return False
+
+2.Add type hints and a docstring (recommended)
+
+    Provide -> bool | Any or a stricter union describing exact returns; documents input types.
+
+3.Catch and translate TaskStatus(...) errors (optional)
+
+    Wrap conversion in try/except ValueError to raise a clearer domain error (e.g., InvalidStatusError) or return False. This changes behaviour by swallowing or translating the exception — use if you want friendlier API errors.
+
+4.Normalize storage.update_task input
+
+    If storage expects a primitive, pass new_status.value or str(new_status) depending on the storage API.
+
+5.Atomic / transactional persistence
+
+    If using a DB, use a transaction around read/modify/write for the DONE branch to avoid races.
+
+6.Logging and observability
+
+    Log when tasks are not found, when persistence fails, or when invalid statuses are supplied.
+
+7.Document and standardize storage return contract
+
+    Make storage.update_task return True/False on success/failure so callers can rely on boolean semantics.
+
+8.Unit tests for the branches
+
+    Tests for: valid DONE where task exists; DONE where task missing; non-DONE success; invalid status raises.
+
+9.Keep behaviour backwards-compatible
+
+    If you cannot change current return semantics, at minimum add an explicit comment documenting the None return when task missing.
+"""
