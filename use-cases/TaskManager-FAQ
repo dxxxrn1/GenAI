@@ -1,0 +1,302 @@
+📘 Task Manager – Frequently Asked Questions (FAQ)
+Overview
+
+This FAQ is designed to help developers using the Task Manager CLI application resolve common questions around:
+
+Installation and dependencies
+
+Running commands
+
+Managing tasks
+
+Troubleshooting
+
+Advanced usage
+
+The focus is on terminal-based workflows, as the tool is primarily CLI driven.
+
+1. 🚀 Getting Started
+❓ What is this Task Manager?
+
+The Task Manager is a command-line tool that allows users to:
+
+Add and remove tasks
+
+Mark tasks as completed
+
+Organize tasks by status or priority
+
+Track overdue tasks and view statistics
+
+It stores data locally in a JSON file.
+
+❓ What are the prerequisites?
+
+You need:
+
+Python 3.8 or newer
+
+pip installed
+
+Terminal access
+
+A code editor (optional but recommended)
+
+❓ How do I install the project?
+
+Clone the repository and install requirements:
+
+git clone <repo-url>
+cd task-manager
+pip install -r requirements.txt
+
+
+If you don’t have a requirements file, you may only need built-in libraries.
+
+❓ How do I run the application?
+
+From the project root:
+
+python cli.py
+
+
+If that doesn’t work, try:
+
+python3 cli.py
+
+2. 🧰 Features & Functionality
+❓ How do I add a task?
+
+Use the create command:
+
+python cli.py add "Task title" --description "Optional text" --priority 1 --due 2025-01-01 --tags work
+
+
+Priority values:
+
+1: High
+
+2: Medium
+
+3: Low
+
+❓ How do I list tasks?
+
+List all tasks:
+
+python cli.py list
+
+
+Filter by status:
+
+python cli.py list --status done
+
+
+Filter by priority:
+
+python cli.py list --priority 1
+
+
+Show only overdue tasks:
+
+python cli.py list --overdue
+
+❓ How do I mark a task as done?
+python cli.py done <task_id>
+
+
+You can find the task ID from the list command.
+
+❓ How do I update a task?
+
+Update priority:
+
+python cli.py update-priority <task_id> 1
+
+
+Update due date:
+
+python cli.py update-due <task_id> 2025-01-01
+
+❓ How do I delete a task?
+python cli.py delete <task_id>
+
+❓ Can I tag a task?
+
+Add a tag:
+
+python cli.py tag-add <task_id> urgent
+
+
+Remove a tag:
+
+python cli.py tag-remove <task_id> urgent
+
+❓ Can I view task statistics?
+python cli.py stats
+
+3. 🔧 Troubleshooting Common Issues
+❓ The program says "Invalid date format"
+
+Due dates must use YYYY-MM-DD:
+
+✔ Correct:
+
+2025-03-10
+
+
+✘ Wrong:
+
+10/03/2025
+2025.03.10
+2025/3/10
+
+❓ The program cannot find a task with the given ID
+
+Possible causes:
+
+Wrong ID (check spelling)
+
+Task was deleted
+
+Storage file corrupted
+
+Try listing tasks:
+
+python cli.py list
+
+❓ I get "ModuleNotFoundError: models"
+
+You are likely running from the wrong directory.
+
+Make sure you're in the root folder:
+
+cd task-manager
+python cli.py
+
+❓ My tasks disappeared after an error
+
+The JSON file may be corrupted.
+
+Try:
+
+Rename tasks.json to tasks_backup.json
+
+Restart the app
+
+❓ The CLI doesn’t recognize the command
+
+Common mistakes:
+
+Using hyphens instead of underscores
+
+Missing positional arguments
+
+Using Python instead of Python3
+
+Check help:
+
+python cli.py --help
+
+4. 🧪 Specific Area: Advanced Usage
+❓ How do I filter tasks by both status and priority?
+
+Currently, the CLI supports one filter at a time.
+You can combine filters manually using shell tools:
+
+Example:
+
+python cli.py list --status done | grep high
+
+❓ Can I store tasks somewhere other than tasks.json?
+
+Yes – pass a storage path when creating the TaskManager instance:
+
+tm = TaskManager(storage_path="my_tasks.json")
+
+
+CLI support may be added later.
+
+❓ Can multiple users share the same tasks file?
+
+Not currently recommended.
+
+The JSON file is not concurrency-safe.
+
+❓ Can I integrate this into another Python app?
+
+Yes, import the classes:
+
+from task_manager import TaskManager
+tm = TaskManager()
+
+
+You can:
+
+Create tasks
+
+Modify tasks
+
+Query tasks
+
+Build new interfaces
+
+5. 🛠 Known Issues
+Issue	Status
+No multi-filtering	Planned
+No undo feature	Not planned
+Slow with very large task files	Known
+No automatic backups	Considered
+Tags must be strings	By design
+6. 🆘 Help & Support
+❓ Where are tasks stored?
+
+Default:
+
+tasks.json
+
+
+Located in the project root.
+
+❓ How do I reset everything?
+
+Remove the tasks file:
+
+rm tasks.json
+
+
+⚠️ This is permanent.
+
+❓ I found a bug — how do I report it?
+
+Open a GitHub issue with:
+
+Steps to reproduce
+
+OS and Python version
+
+Console output
+
+7. 🧩 Tips for Success
+
+Always use valid dates
+
+Run list frequently to verify changes
+
+Keep backups of tasks.json if important
+
+Use tags to group tasks by feature
+
+8. 💬 Suggestions Welcome
+
+If you have ideas for:
+
+Better CLI commands
+
+GUI support
+
+Auto reminders
+
+APIs
+
+…please submit a feature request!

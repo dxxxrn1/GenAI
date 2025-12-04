@@ -1,0 +1,295 @@
+tep-by-step guide — Add / Update / Remove tasks (Intermediate)
+Prerequisites & required access
+
+System & software
+
+Python 3.8+ installed and on your PATH.
+
+Git (to clone the repo, if needed).
+
+Project source
+
+Clone your project repository and cd into it:
+
+git clone https://github.com/yourusername/task-manager.git
+cd task-manager
+
+
+Virtual environment (recommended)
+
+python -m venv venv
+source venv/bin/activate   # macOS / Linux
+venv\Scripts\activate      # Windows
+
+
+Install dependencies (if you maintain a requirements.txt):
+
+pip install -r requirements.txt
+
+
+(If your project currently uses only stdlib, this step may be no-op.)
+
+Access / permissions
+
+Read/write access to the project folder (so the default tasks.json storage file can be created and updated).
+
+Ability to run Python scripts / access the CLI.
+
+Quick overview of the tools you’ll use
+
+task_manager.TaskManager — Python class that exposes operations like create_task, list_tasks, update_task_status, delete_task, etc.
+
+cli.py — (if implemented) command-line entrypoint that wraps TaskManager functions.
+
+storage.py — contains persistence (default tasks.json).
+
+1 — Create (Add) a task
+Goal
+
+Create a new task with title, optional description, priority, due date and tags.
+
+Steps (Python API)
+
+Open a Python REPL or create a small script.
+
+Import and initialize the manager:
+
+from task_manager import TaskManager
+
+tm = TaskManager()  # or TaskManager(storage_path="my_tasks.json")
+
+
+Create a task:
+
+task_id = tm.create_task(
+    title="Buy groceries",
+    description="Milk, eggs, bread",
+    priority_value=1,           # numeric priority, mapped to TaskPriority
+    due_date_str="2025-12-10",  # YYYY-MM-DD
+    tags=["shopping", "errands"]
+)
+print("Created task id:", task_id)
+
+
+Placeholder: Add screenshot of the terminal showing the created task ID.
+![screenshot-create-task](path/to/screenshot.png)
+
+Steps (CLI)
+
+If you have a CLI wrapper, run:
+
+python cli.py add --title "Buy groceries" --description "Milk, eggs, bread" --priority 1 --due 2025-12-10 --tags shopping errands
+
+
+Placeholder: CLI screenshot here.
+
+Notes & common mistakes
+
+Date format: Always use YYYY-MM-DD. Wrong formats raise ValueError and create_task prints Invalid date format. Use YYYY-MM-DD.
+
+Priority values: Use the numeric values expected by TaskPriority (document these in your README). Passing an invalid value may raise or mis-map.
+
+2 — List tasks (view / filter)
+Goal
+
+Display tasks, optionally filter by status, priority, or show overdue.
+
+Steps (Python API)
+# List all tasks
+tasks = tm.list_tasks()
+
+# Filter by status (pass enum name/value accepted by TaskStatus)
+tasks_todo = tm.list_tasks(status_filter="TODO")
+
+# Filter by priority
+high_priority = tm.list_tasks(priority_filter=1)
+
+# Show overdue tasks
+overdue = tm.list_tasks(show_overdue=True)
+
+# Print simple list
+for t in tasks:
+    print(t.id, t.title, t.status.value, t.priority.name, t.due_date)
+
+
+Placeholder: Add screenshot of list_tasks output.
+
+CLI example (if available)
+python cli.py list
+python cli.py list --status IN_PROGRESS
+python cli.py list --priority 1
+python cli.py list --overdue
+
+Notes
+
+status_filter should match values accepted by TaskStatus conversion.
+
+Overdue logic uses Task.is_overdue() — ensure your system clock/timezone is correct.
+
+3 — Mark task as done (update status)
+Goal
+
+Change a task status to DONE. This uses a special path in update_task_status that loads the task object, calls mark_as_done(), then calls self.storage.save().
+
+Steps (Python API)
+success = tm.update_task_status(task_id, "DONE")
+if success:
+    print("Task marked as done.")
+else:
+    print("Failed to mark as done (task may not exist).")
+
+CLI example
+python cli.py update-status --id <TASK_ID> --status DONE
+
+Important behavior & gotchas
+
+Return values: The method returns True when it successfully finds the task and marks it done. If the task does not exist, the method currently returns None (implicit). This can be ambiguous — prefer checking for truthiness or updating the method to return False explicitly for "not found".
+
+Race conditions: The code performs get_task() then save(); if other threads/processes modify the same task concurrently, the change may be lost unless you implement a locking/transaction mechanism.
+
+4 — Update priority / due date / status (non-DONE statuses)
+Update priority
+# Set priority
+tm.update_task_priority(task_id, new_priority_value=2)
+
+Update due date
+tm.update_task_due_date(task_id, "2025-12-31")
+# If date is invalid, method prints usage message and returns False
+
+Update status (non-DONE)
+tm.update_task_status(task_id, "IN_PROGRESS")
+# Delegates to self.storage.update_task(task_id, status=new_status)
+
+Notes
+
+When updating non-DONE statuses, the method delegates to self.storage.update_task(...) and returns whatever that method returns — make sure storage.update_task is documented to return boolean or consistent values.
+
+If storage.update_task expects a raw value rather than TaskStatus object, ensure you pass the right representation (e.g., new_status.value).
+
+5 — Add / Remove tags
+Add tag
+tm.add_tag_to_task(task_id, "urgent")
+
+Remove tag
+tm.remove_tag_from_task(task_id, "urgent")
+
+Notes
+
+add_tag_to_task checks for duplicates and only appends if the tag isn’t present.
+
+Both methods call self.storage.save() after mutation to persist changes.
+
+6 — Delete a task
+Steps (Python API)
+deleted = tm.delete_task(task_id)
+if deleted:
+    print("Task deleted")
+else:
+    print("Task not found or delete failed")
+
+CLI
+python cli.py delete --id <TASK_ID>
+
+Notes
+
+Confirm delete action in UI/CLI before calling in scripts.
+
+7 — Get task details & statistics
+Get details
+task = tm.get_task_details(task_id)
+print(task)  # print object or inspect fields
+
+Get statistics
+stats = tm.get_statistics()
+print(stats)
+# Example stats keys: total, by_status, by_priority, overdue, completed_last_week
+
+Potential issues & common mistakes (summary)
+
+Invalid date format — YYYY-MM-DD required; otherwise ValueError.
+
+Ambiguous return values — update_task_status may return True, None or whatever storage.update_task returns. Normalize returns if possible.
+
+Passing wrong enum types — Ensure you pass values accepted by TaskPriority and TaskStatus constructors (strings or ints depending on implementation).
+
+Concurrency / Race conditions — Read → modify → write flow is not transactional.
+
+Missing storage path or permissions — Ensure the running user can write to tasks.json or configured storage_path.
+
+Storage expectations — Confirm storage.update_task and other storage functions accept the types you pass (e.g., TaskStatus vs. TaskStatus.value).
+
+Screenshots / Code block placeholders
+
+Add screenshots where indicated above. Example placeholders you can replace:
+
+Create task screenshot:
+
+![create-task-1](screenshots/create-task.png)
+
+
+CLI example:
+
+![cli-list](screenshots/cli-list.png)
+
+
+Add code blocks for small scripts (already included throughout the steps).
+
+Troubleshooting — common problems & fixes
+Problem: Invalid date format. Use YYYY-MM-DD
+
+Cause: Wrong date string.
+Fix: Provide due_date_str exactly as 2025-12-10. Use datetime.strptime()-compatible format.
+
+Problem: Task not found when marking DONE
+
+Cause: Wrong task_id or task was deleted.
+Fix: Verify task_id exists via list_tasks() or get_task_details(). Consider adding explicit False return for not found (code change).
+
+Problem: Changes not saved after mutation
+
+Cause: Code mutated task object in memory but didn’t call save() (some code paths rely on storage.update_task while others call save()).
+Fix: Ensure either you use the storage update API or call self.storage.save() after direct mutations.
+
+Problem: Unexpected return types from update functions
+
+Cause: storage.update_task returns a non-boolean value or None.
+Fix: Standardize storage.update_task to return True on success, False on failure. Update callers accordingly.
+
+Problem: Permission denied writing tasks.json
+
+Cause: File permission / directory ownership.
+Fix: Adjust permissions or run with a user who can write to the directory. Alternatively configure TaskManager(storage_path="/path/you/can/write/tasks.json").
+
+Problem: Concurrency issues (lost updates)
+
+Cause: Multiple processes change the storage concurrently.
+Fix: Implement file locking, a database backend, or transaction support in storage.py.
+
+Example end-to-end script (put this in a file example_use.py)
+from task_manager import TaskManager
+
+tm = TaskManager("example_tasks.json")
+
+# Create
+task_id = tm.create_task(
+    "Write README",
+    "Finish README for the project",
+    priority_value=1,
+    due_date_str="2025-12-15",
+    tags=["docs"]
+)
+print("created:", task_id)
+
+# List all
+for t in tm.list_tasks():
+    print(t.id, t.title, t.status.value)
+
+# Mark done
+ok = tm.update_task_status(task_id, "DONE")
+print("marked done?", ok)
+
+# Stats
+print(tm.get_statistics())
+
+# Delete
+tm.delete_task(task_id)

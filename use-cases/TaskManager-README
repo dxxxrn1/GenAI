@@ -1,0 +1,162 @@
+Task Manager
+
+Simple and extensible command-line task management system that allows users to create, track, update, and manage tasks with priorities, due dates, and tags. Tasks support multiple statuses and can be filtered, searched, or summarized with built-in statistics.
+
+🚀 Features
+Add and remove tasks
+Mark tasks as done
+Assign priorities (e.g., low/medium/high)
+Track due dates and detect overdue tasks
+Filter tasks by status or priority
+Tag tasks and search by tags
+View task statistics
+Persistent storage (JSON by default)
+
+🧰 Technologies Used
+
+Python 3.x
+Standard library modules:
+argparse
+datetime
+uuid
+enum
+json (implied in storage)
+
+Custom modules:
+models.py (task, priority, status classes)
+storage.py (JSON storage backend)
+task_manager.py (main API)
+cli.py (command line interface)
+
+📦 Installation
+
+Requirements
+Python 3.8+
+pip (optional for installing dependencies)
+
+Setup
+git clone https://github.com/yourusername/task-manager.git
+cd task-manager
+
+
+Create a virtual environment (recommended):
+
+python -m venv venv
+source venv/bin/activate   # Linux/Mac
+venv\Scripts\activate      # Windows
+
+
+Install dependencies (if any are added):
+pip install -r requirements.txt
+
+🛠️ Usage
+1. Creating a task
+from task_manager import TaskManager
+
+    tm = TaskManager()
+
+    task_id = tm.create_task(
+        title="Buy groceries",
+        description="Milk, eggs, bread",
+        priority_value=1,
+        due_date_str="2024-01-20",
+        tags=["shopping", "errands"]
+    )
+
+    print(task_id)
+
+2. Listing all tasks
+    tasks = tm.list_tasks()
+    for task in tasks:
+        print(task)
+
+3. Marking a task as done
+    tm.update_task_status(task_id, "DONE")
+
+4. Filtering tasks
+    tm.list_tasks(status_filter="IN_PROGRESS")
+    tm.list_tasks(priority_filter=1)
+    tm.list_tasks(show_overdue=True)
+
+5. Deleting a task
+    tm.delete_task(task_id)
+
+⚙️ Configuration
+
+You can configure the path to the storage file:
+    tm = TaskManager(storage_path="my_tasks.json")
+
+Supported task attributes:
+
+Property	Type	Notes
+title	str	required
+description	str	optional
+priority	enum/int	converted to TaskPriority
+due_date	str	YYYY-MM-DD format
+tags	list	stored as list of strings
+status	enum	e.g. TODO, IN_PROGRESS, DONE
+
+📁 Project Structure
+task-manager/
+├── cli.py              # command-line interface
+├── models.py           # Task, TaskPriority, TaskStatus
+├── storage.py          # JSON storage and persistence
+├── task_manager.py     # API for managing tasks
+├── tasks.json          # default storage file (generated)
+└── README.md
+
+Key Files
+models.py — Entities, enums, and business rules
+storage.py — Persistence layer (CRUD and filtering)
+task_manager.py — High-level application logic
+cli.py — CLI entry point
+
+🔧 Troubleshooting
+Problem	Possible Cause	Solution
+Invalid date format	Wrong input format	Use YYYY-MM-DD
+Crashes on startup	Missing storage file	Run any command to create it
+Status/priority errors	Invalid values passed	Use valid enum values
+Changes not saved	Direct object mutation	Always call save() after changes
+Logging / Debugging
+
+You can add extra print statements or integrate logging for better visibility.
+
+🤝 Contributing
+Contributions are welcome!
+Fork the repo
+
+Create a feature branch:
+
+git checkout -b feature/my-feature
+
+
+Commit changes with descriptive messages
+
+Open a pull request
+
+Please follow Python best practices and write unit tests where applicable.
+
+📜 License
+
+This project is licensed under the MIT License.
+
+You are free to use, modify, and distribute the code with attribution.
+
+📝 Future Improvements (Ideas)
+
+CLI autocomplete
+
+Database-backed storage
+
+Task dependencies
+
+Export/import formats (CSV, YAML)
+
+Web UI / API
+
+Notifications/reminders
+
+🙌 Acknowledgements
+
+Thanks for checking out Task Manager!
+Feel free to report issues or request features.
