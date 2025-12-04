@@ -1,0 +1,41 @@
+""""
+1.Error description
+the error message was IndexError: list index out of range which occured becuase we 
+tried to access a list element that is outside the valid range of the list 
+resulting in the loop running over it then giving an error 
+
+2.Root cuase
+The loop used range(len(items) + 1) 
+instead of range(len(items)).
+Python lists are zero-based. For a list of length n, valid indices are 0 to n-1.
+Chain of events:
+
+main() creates a list of 3 items.
+
+print_inventory_report(items) is called.
+
+The loop computes range(len(items) + 1) → 0,1,2,3.
+
+Accessing items[3] triggers the IndexError.
+
+3. Suggested Solution
+Minimal fix:
+
+Remove the +1 in the loop:
+
+for i in range(len(items)):
+    print(f"Item {i+1}: {items[i]['name']} - Quantity: {items[i]['quantity']}")
+
+    
+4. Learning Points
+
+A.Off-by-one errors are common in loops using indices. Always double-check range(len(list)) versus range(len(list) + 1).
+
+B.Prefer enumerate() over manual indexing — cleaner, safer, and less error-prone.
+
+C.Validate data inputs: ensure lists are the expected type and contain expected keys.
+
+D.Write unit tests for edge cases: empty lists, lists with missing keys, single-element lists.
+
+E.Understand Python list boundaries: 0-based indexing is fundamental; len(list) is always out-of-bounds for direct access.
+"""
