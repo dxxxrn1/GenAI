@@ -1,0 +1,60 @@
+I unsure because the AI solution fixed the loop but I wanted to confirm correctness 
+by trsting multiple arrays and comparing the results with other sorting methods (quicksort) to cornfirm
+after looking through the loop i was confident 
+
+Aspects of the AI solution required the most scrutiny
+The leftover loops: ensuring i and j were incremented correctly.
+Edge cases: empty arrays, single-element arrays, duplicates, and negative numbers
+Stability: verifying that equal elements maintain original order
+splitting logic: making sure slice correctly divides the array.
+
+verification technique
+comparing outputs with other sorting methods confirmed correctness
+manually checking the loops and recursion showed the index errors.
+AI helped clarify why the fix worked, but testing was key to confirming it
+
+key lessons
+Even small index mistakes can break a correct algorithm completely
+Testing multiple cases, including edge cases, is important.
+AI suggestions are helpful but must be verified
+
+Final Code Fix
+// Buggy sorting function
+function mergeSort(arr) {
+  if (arr.length <= 1) return arr;
+
+  const mid = Math.floor(arr.length / 2);
+  const left = mergeSort(arr.slice(0, mid));
+  const right = mergeSort(arr.slice(mid));
+
+  return merge(left, right);
+}
+
+function merge(left, right) {
+  let result = [];
+  let i = 0;
+  let j = 0;
+
+  while (i < left.length && j < right.length) {
+    if (left[i] < right[j]) {
+      result.push(left[i]);
+      i++;
+    } else {
+      result.push(right[j]);
+      j++;
+    }
+  }
+
+  // Bug: Only one of these loops will execute
+  while (i < left.length) {
+    result.push(left[i]);
+    j++; // Bug: incrementing j instead of i
+  }
+
+  while (j < right.length) {
+    result.push(right[j]);
+    j++;
+  }
+
+  return result;
+}
