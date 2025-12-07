@@ -1,0 +1,81 @@
+Slow-Performing Code Reflection
+the understanding of optimaztion made me look more towards the scale at which the data is processed
+rather than how to simply change a few lines of code to less lines. i also gained a understanding of the difference in memory usage vs performance and that by reduing the duplicate checks we can access information faster and put less resources into proccesing uneccesary information
+
+The improvments i got reduced the work done by the code by almost half becuase we avoided doing duplicate checks
+making it more efficient even if the scale of stuff processed increases and reqirements grow the code can be maintained well
+
+key lessons:
+The biggest bottlenecks are often not seen in small data.
+The original code looked normal with 100 items, but can be slower at 5,000.
+
+Nested loops are not always the solution
+a loop in a loop can mean millions of operations.
+
+Data structure choice matters more than syntax efficiency.
+
+Profiling reveals surprises.
+Code that looks fine can be where the program spends 90% of its time
+
+Future Approach to Performance Issues
+Start by estimating scale and identifying costly operations before coding.
+Prioritize algorithmic efficiency over minor micro-optimizations.
+Use hash sets, indexes, and sorted structures to minimize repeated work.
+Profile early and regularly, rather than guessing where problems are.
+Evaluate whether simplifying or restructuring logic can eliminate bottlenecks entirely.
+
+Memory Optimization Findings
+the llm revealed that it is a problem from architectural design not small bugs.
+Showed the importance of streaming or incremental processing instead of loading everything at once.
+showed me of how large objects, like images can increase memory usage when stored in collections.
+Highlighted that holding references in lists prevents garbage collection, leading to memory retention
+
+performative improvments achieved
+started by switching to processing images one by one instead of batching to drop memeory usage
+Eliminated duplicate copies of large objects in memory (original + processed versions).
+Prevented JVM crashes and made the application capable of handling much larger batches and improved stability
+
+key lessons
+Large objects like images can a lot of MB each, so 50–100 images = GB per batch.
+Java’s default heap size (~256MB) is very small compared to typical RAM.
+Garbage collection cannot free memory if objects remain referenced such as in lists.
+Batch designs are risky because they cause increased memory growth and usage as input size increases.
+
+How to approach similar performance issues in the future?
+Design systems to stream or discard data, not keep everything in memory.
+Estimate memory footprint of objects early to understand scalability limits.
+Identify long-lived collections that hold onto data unnecessarily.
+Test with realistic data sizes to identify scaling problems.
+
+Tools or techniques to identify similar issues
+Use VisualVM, Java Flight Recorder, or Eclipse MAT to analyze heap usage.
+Track memory allocation, retention, and object counts over time.
+Enable GC logging to detect excessive garbage collection cycles.
+Take heap snapshots during load tests to find large or retained objects.
+Incorporate memory profiling into performance testing to catch issues before production
+
+
+Slow Database Query 
+The optimization process made it clear that database performance is less about individual statements and more about how queries interact with table structure, indexes, and execution plans.
+I also learned that nested subqueries can increase memory usage and CPU load because they cause repeated scans
+
+performance improvements
+The changes resulted in high performance gains. 
+Adding indexes and resturcturing the query reduced the query time
+Optimization increased scalability by supporting larger datasets
+
+key lessons
+bottlenecks often come from hidden work the database performs internally such as repeated scans
+nested loops and sorting operation
+Large unindexed joins can trigger scans and sorting, causing long delays
+
+How to approach similar performance issues in the future?
+Check for missing indexes on filter, join, and sort columns
+Break large complex queries into smaller, simpler queries
+Validate performance using realistic data volumes, not small test samples
+
+Tools or techniques to identify similar issues
+Enable slow query logging to detect performance regression
+Review database indexes and query patterns as data grows
+Monitor query timings within the application to detect spikes
+Use load testing tools to evaluate performance under real-world workloads
