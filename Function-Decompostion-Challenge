@@ -1,0 +1,36 @@
+Selected Function
+Data Validation Function with Nested Conditionals (JavaScript)
+
+Problems Identified Before Refactoring
+Too many responsibilities - The function handled 8+ major validation domains, all in a single long block.
+ nested conditionals - Many if / else / else if layers made it hard to follow.
+
+Mixed abstraction levels - High-level rules (“validate registration fields”) mixed with low-level logic (regex patterns, date math).
+
+Hard to test - Because everything lived in one place, isolating bugs or writing unit tests for specific behaviors was difficult.
+
+breaking down the ValidateUserData function improved its readability by breaking down key responsibilties into seperate functions 
+ensuring each focuses on one task at a time maing each part easier to understand such as validateUsername,ValidatePassword,etc...
+instead of reading through all nested conditions we have better blocks of code to understand with clear functions
+
+Maintainability
+When validation rules need to change such as password requirements, we can change a single function without affecting other fucntions in other validation logic 
+Each function can now be better tested independently then trying to validate and test edge cases on one large code of nested Conditionals 
+The functions can also be now reused for other validations so code is not repeated 
+
+
+Challenging part of decomposing the function?
+Was identifying key logic to use as all functions were mixed and some overlapped such as email rules working for both registation and updates
+Making sure extraction didnt break functionlaity without losing the reqired parameters
+
+invalid dates
+age < 13
+age > 120
+future dates 
+
+extracted function would be most reusable in other contexts?
+validateEmail(userData, options)
+Email format validation is common across apps
+Uniqueness check can be injected (via options.checkExisting)
+Works for both registration and profile updates
+Self-contained logic with clear inputs and output

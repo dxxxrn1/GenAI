@@ -1,4 +1,4 @@
-I unsure because the AI solution fixed the loop but I wanted to confirm correctness 
+/* I unsure because the AI solution fixed the loop but I wanted to confirm correctness 
 by trsting multiple arrays and comparing the results with other sorting methods (quicksort) to cornfirm
 after looking through the loop i was confident 
 
@@ -18,7 +18,7 @@ Even small index mistakes can break a correct algorithm completely
 Testing multiple cases, including edge cases, is important.
 AI suggestions are helpful but must be verified
 
-Final Code Fix
+Final Code Fix */
 // Buggy sorting function
 function mergeSort(arr) {
   if (arr.length <= 1) return arr;
